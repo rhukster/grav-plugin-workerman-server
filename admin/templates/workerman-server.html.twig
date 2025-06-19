@@ -1,0 +1,462 @@
+{% extends 'partials/base.html.twig' %}
+
+{% block titlebar %}
+    <div class="button-bar">
+        <a class="button" href="{{ admin.adminRoute() }}/plugins/comments-pro"><i class="fa fa-reply"></i> Back to Plugin</a>
+    </div>
+    <h1><i class="fa fa-cogs"></i> Workerman SSE Management</h1>
+{% endblock %}
+
+{% block content %}
+    <div class="workerman-management">
+        <div class="row">
+            <div class="col-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fa fa-info-circle"></i> Daemon Status</h3>
+                    </div>
+                    <div class="card-content">
+                        <div id="workerman-status" class="status-container">
+                            <div class="loading">
+                                <i class="fa fa-spinner fa-spin"></i> Checking daemon status...
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button class="button primary" id="start-daemon">
+                                <i class="fa fa-play"></i> Start Daemon
+                            </button>
+                            <button class="button secondary" id="stop-daemon">
+                                <i class="fa fa-stop"></i> Stop Daemon
+                            </button>
+                            <button class="button" id="restart-daemon">
+                                <i class="fa fa-refresh"></i> Restart Daemon
+                            </button>
+                            <button class="button" id="reload-daemon">
+                                <i class="fa fa-refresh"></i> Reload Config
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fa fa-users"></i> Active Connections</h3>
+                    </div>
+                    <div class="card-content">
+                        <div id="connections-info">
+                            <div class="loading">
+                                <i class="fa fa-spinner fa-spin"></i> Loading connection data...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fa fa-file-text-o"></i> Recent Logs</h3>
+                        <div class="card-actions">
+                            <button class="button small" id="refresh-logs">
+                                <i class="fa fa-refresh"></i> Refresh
+                            </button>
+                            <button class="button small secondary" id="clear-logs">
+                                <i class="fa fa-trash"></i> Clear Logs
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div id="log-content">
+                            <div class="loading">
+                                <i class="fa fa-spinner fa-spin"></i> Loading logs...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fa fa-terminal"></i> CLI Commands</h3>
+                    </div>
+                    <div class="card-content">
+                        <p><strong>Run from Grav root directory:</strong><br>
+                        <code>cd /path/to/your/grav/site</code></p>
+                        
+                        <div class="cli-commands">
+                            <div class="cli-command">
+                                <h4>Start Daemon</h4>
+                                <code>bin/plugin workerman-server start -d</code>
+                            </div>
+                            
+                            <div class="cli-command">
+                                <h4>Stop Daemon</h4>
+                                <code>bin/plugin workerman-server stop</code>
+                            </div>
+                            
+                            <div class="cli-command">
+                                <h4>Check Status</h4>
+                                <code>bin/plugin workerman-server status</code>
+                            </div>
+                            
+                            <div class="cli-command">
+                                <h4>Cache Handlers</h4>
+                                <code>bin/plugin workerman-server cache</code>
+                            </div>
+                            
+                            <div class="cli-command">
+                                <h4>Restart Daemon</h4>
+                                <code>bin/plugin workerman-server restart -d</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fa fa-cog"></i> Configuration</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="config-info">
+                            <div class="config-item">
+                                <strong>Host:</strong> {{ config.workerman.host|default('127.0.0.1') }}
+                            </div>
+                            <div class="config-item">
+                                <strong>Port:</strong> {{ config.workerman.port|default(8080) }}
+                            </div>
+                            <div class="config-item">
+                                <strong>Workers:</strong> {{ config.workerman.worker_count|default(4) }}
+                            </div>
+                            <div class="config-item">
+                                <strong>Max Connections/IP:</strong> {{ config.workerman.max_connections_per_ip|default(10) }}
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <a href="{{ admin.adminRoute() }}/plugins/comments-pro" class="button small">
+                                <i class="fa fa-edit"></i> Edit Configuration
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fa fa-server"></i> System Service</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>For production deployment, you can create a systemd service.</p>
+                        <button class="button small" id="generate-service">
+                            <i class="fa fa-download"></i> Generate Service File
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .workerman-management .card {
+            margin-bottom: 20px;
+        }
+        
+        .workerman-management .card-header {
+            background: #f8f8f8;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .workerman-management .card-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        .workerman-management .card-content {
+            padding: 20px;
+        }
+        
+        .status-container {
+            margin-bottom: 20px;
+        }
+        
+        .status-running {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .status-stopped {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .cli-commands .cli-command {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+        
+        .cli-commands .cli-command h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+        }
+        
+        .cli-commands code {
+            background: #333;
+            color: #fff;
+            padding: 5px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        
+        .config-info .config-item {
+            margin-bottom: 8px;
+        }
+        
+        .log-content-area {
+            background: #333;
+            color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+
+    <script>
+        // Workerman Management JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusContainer = document.getElementById('workerman-status');
+            const connectionsContainer = document.getElementById('connections-info');
+            const logContainer = document.getElementById('log-content');
+            
+            // Button handlers
+            document.getElementById('start-daemon').addEventListener('click', function() {
+                executeCommand('start');
+            });
+            
+            document.getElementById('stop-daemon').addEventListener('click', function() {
+                executeCommand('stop');
+            });
+            
+            document.getElementById('restart-daemon').addEventListener('click', function() {
+                executeCommand('restart');
+            });
+            
+            document.getElementById('reload-daemon').addEventListener('click', function() {
+                executeCommand('reload');
+            });
+            
+            document.getElementById('refresh-logs').addEventListener('click', function() {
+                loadLogs();
+            });
+            
+            document.getElementById('clear-logs').addEventListener('click', function() {
+                if (confirm('Are you sure you want to clear the logs?')) {
+                    executeCommand('clear-logs');
+                }
+            });
+            
+            document.getElementById('generate-service').addEventListener('click', function() {
+                executeCommand('generate-service');
+            });
+            
+            // Load initial data
+            loadStatus();
+            loadConnections();
+            loadLogs();
+            
+            // Set up auto-refresh
+            setInterval(function() {
+                loadStatus();
+                loadConnections();
+            }, 10000); // Refresh every 10 seconds
+            
+            function executeCommand(action) {
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+                
+                fetch('{{ admin.adminRoute() }}.json/action:workerman' + action.charAt(0).toUpperCase() + action.slice(1) + '/admin-nonce:{{ admin.getNonce() }}')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                        
+                        if (data.success) {
+                            showNotification(data.message || action + ' completed successfully', 'success');
+                            if (action === 'clear-logs') {
+                                loadLogs();
+                            }
+                        } else {
+                            showNotification(data.message || action + ' failed', 'error');
+                        }
+                        
+                        // Refresh status after command
+                        setTimeout(function() {
+                            loadStatus();
+                            loadConnections();
+                        }, 2000);
+                    })
+                    .catch(error => {
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                        console.error('Error executing command:', error);
+                        showNotification('Failed to execute ' + action + ': ' + error.message, 'error');
+                    });
+            }
+            
+            function loadStatus() {
+                console.log('Attempting to fetch status from:', '{{ admin.adminRoute() }}.json/action:workermanStatus/admin-nonce:{{ admin.getNonce() }}');
+                fetch('{{ admin.adminRoute() }}.json/action:workermanStatus/admin-nonce:{{ admin.getNonce() }}')
+                    .then(response => {
+                        console.log('Status response:', response.status, response.statusText);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Status data received:', data);
+                        let statusHtml = '<div class="status-info">';
+                        
+                        if (data.available) {
+                            if (data.running) {
+                                statusHtml += `<p><strong>Status:</strong> <span class="status-running">Running</span></p>`;
+                                statusHtml += `<p><strong>PID:</strong> ${data.pid || 'Unknown'}</p>`;
+                                statusHtml += `<p><strong>Workers:</strong> ${data.workers || 'Unknown'}</p>`;
+                                statusHtml += `<p><strong>Uptime:</strong> ${data.uptime || 'Unknown'}</p>`;
+                            } else {
+                                statusHtml += `<p><strong>Status:</strong> <span class="status-stopped">Stopped</span></p>`;
+                                statusHtml += `<p><small>The Workerman daemon is not running.</small></p>`;
+                            }
+                        } else {
+                            statusHtml += `<p><strong>Status:</strong> <span class="status-stopped">Not Available</span></p>`;
+                            statusHtml += `<p><small>Workerman is not installed or not configured properly.</small></p>`;
+                        }
+                        
+                        statusHtml += '</div>';
+                        statusContainer.innerHTML = statusHtml;
+                    })
+                    .catch(error => {
+                        console.error('Error loading status:', error);
+                        statusContainer.innerHTML = `
+                            <div class="status-info">
+                                <p><strong>Status:</strong> <span class="status-stopped">Error</span></p>
+                                <p><small>Failed to check daemon status. See console for details.</small></p>
+                            </div>
+                        `;
+                    });
+            }
+            
+            function loadConnections() {
+                fetch('{{ admin.adminRoute() }}.json/action:workermanConnections/admin-nonce:{{ admin.getNonce() }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        let connectionsHtml = '<div class="connections-info">';
+                        
+                        if (data.running) {
+                            connectionsHtml += `<p><strong>Total Connections:</strong> ${data.total || 0}</p>`;
+                            connectionsHtml += `<p><strong>Active Workers:</strong> ${data.workers || 0}</p>`;
+                            
+                            if (data.connections && data.connections.length > 0) {
+                                connectionsHtml += '<div class="connections-list">';
+                                connectionsHtml += '<h4>Active Connections:</h4>';
+                                data.connections.forEach(conn => {
+                                    connectionsHtml += `
+                                        <div class="connection-item">
+                                            <strong>IP:</strong> ${conn.ip || 'Unknown'} | 
+                                            <strong>Route:</strong> ${conn.route || 'Unknown'} |
+                                            <strong>Duration:</strong> ${conn.duration || 'Unknown'}
+                                        </div>
+                                    `;
+                                });
+                                connectionsHtml += '</div>';
+                            } else {
+                                connectionsHtml += '<p><em>No active connections</em></p>';
+                            }
+                        } else {
+                            connectionsHtml += '<p>Connection information is only available when the daemon is running.</p>';
+                        }
+                        
+                        connectionsHtml += '</div>';
+                        connectionsContainer.innerHTML = connectionsHtml;
+                    })
+                    .catch(error => {
+                        console.error('Error loading connections:', error);
+                        connectionsContainer.innerHTML = `
+                            <div class="connections-info">
+                                <p>Failed to load connection information.</p>
+                            </div>
+                        `;
+                    });
+            }
+            
+            function loadLogs() {
+                // This would make an AJAX call to get actual logs
+                logContainer.innerHTML = `
+                    <div class="log-content-area">
+                        <div style="color: #999;">Log viewing will be available when the plugin is fully integrated.</div>
+                        <div style="color: #999;">For now, check logs manually at: user/plugins/comments-pro/logs/workerman.log</div>
+                    </div>
+                `;
+            }
+            
+            function showNotification(message, type) {
+                // Simple notification system
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 15px 20px;
+                    background: ${type === 'success' ? '#28a745' : '#dc3545'};
+                    color: white;
+                    border-radius: 4px;
+                    z-index: 9999;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(function() {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(function() {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            }
+        });
+    </script>
+{% endblock %}

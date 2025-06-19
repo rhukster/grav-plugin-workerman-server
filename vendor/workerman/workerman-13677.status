@@ -1,0 +1,14 @@
+a:4:{i:13678;a:2:{s:4:"name";s:8:"Grav-SSE";s:6:"listen";s:21:"http://127.0.0.1:8080";}i:13679;a:2:{s:4:"name";s:8:"Grav-SSE";s:6:"listen";s:21:"http://127.0.0.1:8080";}i:13680;a:2:{s:4:"name";s:8:"Grav-SSE";s:6:"listen";s:21:"http://127.0.0.1:8080";}i:13681;a:2:{s:4:"name";s:8:"Grav-SSE";s:6:"listen";s:21:"http://127.0.0.1:8080";}}
+----------------------------------------------GLOBAL STATUS----------------------------------------------------
+Workerman version:4.2.1          PHP version:8.3.21
+start time:2025-06-19 22:16:02   run 0 days 0 hours   
+load average: 1.27, 1.84, 2.18   event-loop:\Workerman\Events\Select
+1 workers       4 processes
+worker_name  exit_status      exit_count
+Grav-SSE     0                0
+----------------------------------------------PROCESS STATUS---------------------------------------------------
+pid	memory  listening             worker_name  connections send_fail timers  total_request qps    status
+13678	4.53M   http://127.0.0.1:8080 Grav-SSE     0           0         2       4            
+13679	4.53M   http://127.0.0.1:8080 Grav-SSE     0           0         2       2            
+13680	4.53M   http://127.0.0.1:8080 Grav-SSE     0           0         2       4            
+13681	4.53M   http://127.0.0.1:8080 Grav-SSE     0           0         2       2            

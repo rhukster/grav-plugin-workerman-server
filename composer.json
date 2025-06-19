@@ -1,0 +1,22 @@
+{
+    "name": "trilby/grav-plugin-workerman-server",
+    "type": "grav-plugin",
+    "description": "High-performance SSE/WebSocket server for real-time communication in Grav",
+    "keywords": ["grav", "plugin", "workerman", "sse", "websocket", "realtime"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Your Name",
+            "email": "your@email.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "workerman/workerman": "^4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Grav\\Plugin\\WorkermanServer\\": "classes/"
+        }
+    }
+}

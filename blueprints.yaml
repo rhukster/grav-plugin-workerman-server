@@ -1,0 +1,212 @@
+name: Workerman Server
+slug: workerman-server
+type: plugin
+version: 1.0.0
+description: High-performance SSE/WebSocket server for real-time communication in Grav
+icon: server
+author:
+  name: Your Name
+  email: your@email.com
+homepage: https://github.com/yourusername/grav-plugin-workerman-server
+keywords: workerman, sse, websocket, realtime, server
+bugs: https://github.com/yourusername/grav-plugin-workerman-server/issues
+license: MIT
+
+dependencies:
+  - { name: grav, version: '>=1.7.0' }
+
+form:
+  validation: loose
+  fields:
+    enabled:
+      type: toggle
+      label: PLUGIN_ADMIN.PLUGIN_STATUS
+      highlight: 1
+      default: 0
+      options:
+        1: PLUGIN_ADMIN.ENABLED
+        0: PLUGIN_ADMIN.DISABLED
+      validate:
+        type: bool
+
+    tabs:
+      type: tabs
+      fields:
+        server:
+          type: tab
+          title: PLUGIN_WORKERMAN_SERVER.SERVER_CONFIG
+          fields:
+            server_header:
+              type: section
+              title: PLUGIN_WORKERMAN_SERVER.SERVER_SETTINGS
+              underline: true
+            
+            host:
+              type: text
+              label: PLUGIN_WORKERMAN_SERVER.HOST
+              help: PLUGIN_WORKERMAN_SERVER.HOST_HELP
+              default: '127.0.0.1'
+              validate:
+                type: string
+            
+            port:
+              type: number
+              label: PLUGIN_WORKERMAN_SERVER.PORT
+              help: PLUGIN_WORKERMAN_SERVER.PORT_HELP
+              default: 8080
+              min: 1024
+              max: 65535
+              validate:
+                type: int
+            
+            worker_count:
+              type: number
+              label: PLUGIN_WORKERMAN_SERVER.WORKER_COUNT
+              help: PLUGIN_WORKERMAN_SERVER.WORKER_COUNT_HELP
+              default: 4
+              min: 1
+              max: 20
+              validate:
+                type: int
+            
+            max_connections_per_ip:
+              type: number
+              label: PLUGIN_WORKERMAN_SERVER.MAX_CONNECTIONS_PER_IP
+              help: PLUGIN_WORKERMAN_SERVER.MAX_CONNECTIONS_PER_IP_HELP
+              default: 10
+              min: 1
+              max: 100
+              validate:
+                type: int
+            
+            heartbeat_interval:
+              type: number
+              label: PLUGIN_WORKERMAN_SERVER.HEARTBEAT_INTERVAL
+              help: PLUGIN_WORKERMAN_SERVER.HEARTBEAT_INTERVAL_HELP
+              default: 30
+              min: 10
+              max: 300
+              validate:
+                type: int
+            
+            connection_timeout:
+              type: number
+              label: PLUGIN_WORKERMAN_SERVER.CONNECTION_TIMEOUT
+              help: PLUGIN_WORKERMAN_SERVER.CONNECTION_TIMEOUT_HELP
+              default: 300
+              min: 60
+              max: 3600
+              validate:
+                type: int
+            
+            check_interval:
+              type: number
+              label: PLUGIN_WORKERMAN_SERVER.CHECK_INTERVAL
+              help: PLUGIN_WORKERMAN_SERVER.CHECK_INTERVAL_HELP
+              default: 2
+              min: 1
+              max: 60
+              validate:
+                type: int
+
+        ssl:
+          type: tab
+          title: PLUGIN_WORKERMAN_SERVER.SSL_CONFIG
+          fields:
+            ssl_header:
+              type: section
+              title: PLUGIN_WORKERMAN_SERVER.SSL_SETTINGS
+              underline: true
+              text: |
+                Configure SSL support for HTTPS connections. Required when serving pages over HTTPS to avoid mixed content errors.
+                **For detailed setup instructions, see [SSL_SETUP.md](user/plugins/workerman-server/SSL_SETUP.md)**
+            
+            ssl.enabled:
+              type: toggle
+              label: PLUGIN_WORKERMAN_SERVER.SSL_ENABLED
+              help: PLUGIN_WORKERMAN_SERVER.SSL_ENABLED_HELP
+              highlight: 0
+              default: 0
+              options:
+                1: PLUGIN_ADMIN.ENABLED
+                0: PLUGIN_ADMIN.DISABLED
+              validate:
+                type: bool
+            
+            ssl.cert_file:
+              type: text
+              label: PLUGIN_WORKERMAN_SERVER.SSL_CERT_FILE
+              help: PLUGIN_WORKERMAN_SERVER.SSL_CERT_FILE_HELP
+              placeholder: /path/to/certificate.crt
+              validate:
+                type: string
+            
+            ssl.key_file:
+              type: text
+              label: PLUGIN_WORKERMAN_SERVER.SSL_KEY_FILE
+              help: PLUGIN_WORKERMAN_SERVER.SSL_KEY_FILE_HELP
+              placeholder: /path/to/private.key
+              validate:
+                type: string
+            
+            ssl.verify_peer:
+              type: toggle
+              label: PLUGIN_WORKERMAN_SERVER.SSL_VERIFY_PEER
+              help: PLUGIN_WORKERMAN_SERVER.SSL_VERIFY_PEER_HELP
+              highlight: 0
+              default: 0
+              options:
+                1: PLUGIN_ADMIN.ENABLED
+                0: PLUGIN_ADMIN.DISABLED
+              validate:
+                type: bool
+
+        management:
+          type: tab
+          title: PLUGIN_WORKERMAN_SERVER.MANAGEMENT
+          fields:
+            management_header:
+              type: section
+              title: PLUGIN_WORKERMAN_SERVER.DAEMON_MANAGEMENT
+              underline: true
+              text: Use the controls below to manage the Workerman daemon.
+            
+            management_status:
+              type: display
+              label: PLUGIN_WORKERMAN_SERVER.STATUS
+              content: |
+                <div id="workerman-status-container">
+                  <p><em>Loading status...</em></p>
+                </div>
+                <script>
+                  // Status will be loaded via JavaScript
+                </script>
+            
+            management_controls:
+              type: display
+              label: PLUGIN_WORKERMAN_SERVER.CONTROLS
+              content: |
+                <div class="workerman-controls">
+                  <button class="button" onclick="workermanControl('start')">Start</button>
+                  <button class="button" onclick="workermanControl('stop')">Stop</button>
+                  <button class="button" onclick="workermanControl('restart')">Restart</button>
+                  <button class="button" onclick="workermanControl('status')">Refresh Status</button>
+                </div>
+            
+            cli_commands:
+              type: display
+              label: PLUGIN_WORKERMAN_SERVER.CLI_COMMANDS
+              content: |
+                <pre style="background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px;">
+                # Start daemon
+                php user/plugins/workerman-server/bin/workerman-server.php start -d
+
+                # Stop daemon
+                php user/plugins/workerman-server/bin/workerman-server.php stop
+
+                # Check status
+                php user/plugins/workerman-server/bin/workerman-server.php status
+
+                # View connections
+                php user/plugins/workerman-server/bin/workerman-server.php connections
+                </pre>

@@ -1,0 +1,14 @@
+a:4:{i:94611;a:2:{s:4:"name";s:13:"Workerman-SSE";s:6:"listen";s:21:"http://127.0.0.1:8080";}i:94612;a:2:{s:4:"name";s:13:"Workerman-SSE";s:6:"listen";s:21:"http://127.0.0.1:8080";}i:94613;a:2:{s:4:"name";s:13:"Workerman-SSE";s:6:"listen";s:21:"http://127.0.0.1:8080";}i:94614;a:2:{s:4:"name";s:13:"Workerman-SSE";s:6:"listen";s:21:"http://127.0.0.1:8080";}}
+----------------------------------------------GLOBAL STATUS----------------------------------------------------
+Workerman version:4.2.1          PHP version:8.3.21
+start time:2025-06-19 20:43:22   run 0 days 0 hours   
+load average: 2.41, 2.78, 2.79   event-loop:\Workerman\Events\Select
+1 workers       4 processes
+worker_name   exit_status      exit_count
+Workerman-SSE 0                0
+----------------------------------------------PROCESS STATUS---------------------------------------------------
+pid	memory  listening             worker_name   connections send_fail timers  total_request qps    status
+94612	4.29M   http://127.0.0.1:8080 Workerman-SSE 0           0         2       0            
+94613	4.29M   http://127.0.0.1:8080 Workerman-SSE 0           0         2       0            
+94614	4.29M   http://127.0.0.1:8080 Workerman-SSE 0           0         2       0            
+94611	4.29M   http://127.0.0.1:8080 Workerman-SSE 0           0         2       0            

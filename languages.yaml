@@ -1,0 +1,34 @@
+en:
+  PLUGIN_WORKERMAN_SERVER:
+    TITLE: Workerman Server
+    MANAGEMENT: Management
+    SERVER_CONFIG: Server Configuration
+    SERVER_SETTINGS: Server Settings
+    HOST: Server Host
+    HOST_HELP: Host address for the Workerman server. Use 127.0.0.1 for local only, 0.0.0.0 for all interfaces.
+    PORT: Server Port
+    PORT_HELP: Port for the Workerman server. Make sure it's not in use by another service.
+    WORKER_COUNT: Worker Processes
+    WORKER_COUNT_HELP: Number of worker processes to run. Typically 2-4x CPU cores for best performance.
+    MAX_CONNECTIONS_PER_IP: Max Connections per IP
+    MAX_CONNECTIONS_PER_IP_HELP: Maximum number of connections allowed per IP address for rate limiting.
+    HEARTBEAT_INTERVAL: Heartbeat Interval (seconds)
+    HEARTBEAT_INTERVAL_HELP: How often to send heartbeat messages to keep connections alive.
+    CONNECTION_TIMEOUT: Connection Timeout (seconds)
+    CONNECTION_TIMEOUT_HELP: How long to keep idle connections open before closing them.
+    CHECK_INTERVAL: Check Interval (seconds)
+    CHECK_INTERVAL_HELP: How often to check for file changes and updates.
+    SSL_CONFIG: SSL Configuration
+    SSL_SETTINGS: SSL/HTTPS Settings
+    SSL_ENABLED: Enable SSL/HTTPS
+    SSL_ENABLED_HELP: Enable SSL support for the Workerman server. Requires valid SSL certificate files.
+    SSL_CERT_FILE: SSL Certificate File
+    SSL_CERT_FILE_HELP: Path to the SSL certificate file (.crt or .pem). Use absolute path or path relative to Grav root.
+    SSL_KEY_FILE: SSL Private Key File
+    SSL_KEY_FILE_HELP: Path to the SSL private key file (.key or .pem). Use absolute path or path relative to Grav root.
+    SSL_VERIFY_PEER: Verify SSL Peers
+    SSL_VERIFY_PEER_HELP: Enable SSL peer verification. Disable for self-signed certificates.
+    DAEMON_MANAGEMENT: Daemon Management
+    STATUS: Daemon Status
+    CONTROLS: Daemon Controls
+    CLI_COMMANDS: CLI Commands

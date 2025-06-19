@@ -1,0 +1,13 @@
+enabled: true
+host: 127.0.0.1
+port: 8080
+worker_count: 4
+max_connections_per_ip: 10
+heartbeat_interval: 30
+connection_timeout: 300
+check_interval: 2
+ssl:
+  enabled: false
+  cert_file: ''
+  key_file: ''
+  verify_peer: false
