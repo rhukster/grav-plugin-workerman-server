@@ -3,11 +3,13 @@
 namespace Grav\Plugin\Console;
 
 use Grav\Common\Grav;
+use Grav\Common\Yaml;
 use Grav\Console\ConsoleCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
 
@@ -21,9 +23,9 @@ class SslSetupCommand extends ConsoleCommand
         $this
             ->setName('ssl-setup')
             ->setDescription('Set up Let\'s Encrypt SSL certificates for Workerman server')
-            ->addArgument('domain', InputArgument::REQUIRED, 'Domain name for the certificate')
-            ->addArgument('email', InputArgument::REQUIRED, 'Email address for Let\'s Encrypt')
-            ->addOption('webroot', 'w', InputOption::VALUE_OPTIONAL, 'Webroot path for certificate validation', GRAV_ROOT)
+            ->addArgument('domain', InputArgument::OPTIONAL, 'Domain name for the certificate')
+            ->addArgument('email', InputArgument::OPTIONAL, 'Email address for Let\'s Encrypt')
+            ->addOption('webroot', 'w', InputOption::VALUE_OPTIONAL, 'Webroot path for certificate validation')
             ->addOption('standalone', 's', InputOption::VALUE_NONE, 'Use standalone mode (requires stopping web server)')
             ->setHelp('This command obtains and configures Let\'s Encrypt SSL certificates for the Workerman SSE server');
     }
@@ -32,69 +34,81 @@ class SslSetupCommand extends ConsoleCommand
     {
         $io = new SymfonyStyle($input, $output);
         $grav = Grav::instance();
-        
+
         $domain = $input->getArgument('domain');
         $email = $input->getArgument('email');
         $webroot = $input->getOption('webroot');
         $standalone = $input->getOption('standalone');
-        
+
         $io->title('Let\'s Encrypt SSL Setup for Workerman SSE');
-        
+
+        if (!$domain) {
+            $domain = $io->askQuestion(new Question('Enter <yellow>Domain</yellow>', GRAV_ROOT));
+        }
+
+        if (!$email) {
+            $email = $io->askQuestion(new Question('Enter <yellow>Email</yellow>'));
+        }
+
+        if (!$webroot && !$standalone) {
+            $webroot = $io->askQuestion(new Question('Enter <yellow>Webroot</yellow>'));
+        }
+
         // Validate inputs
         if (!filter_var("http://{$domain}", FILTER_VALIDATE_URL)) {
             $io->error('Invalid domain name format');
             return 1;
         }
-        
+
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $io->error('Invalid email address format');
             return 1;
         }
-        
+
         // Check prerequisites
         if (!$this->checkPrerequisites($io)) {
             return 1;
         }
-        
+
         // Create SSL directory
         $sslDir = GRAV_ROOT . '/ssl';
         if (!is_dir($sslDir)) {
             mkdir($sslDir, 0755, true);
             $io->success("Created SSL directory: {$sslDir}");
         }
-        
+
         // Obtain certificate
         if ($standalone) {
             $success = $this->obtainCertificateStandalone($domain, $email, $io);
         } else {
             $success = $this->obtainCertificateWebroot($domain, $email, $webroot, $io);
         }
-        
+
         if (!$success) {
             return 1;
         }
-        
+
         // Copy and configure certificates
         if (!$this->configureCertificates($domain, $sslDir, $io)) {
             return 1;
         }
-        
+
         // Update Grav configuration
         $this->updateGravConfig($io);
-        
+
         $this->displaySuccess($domain, $io);
-        
+
         return 0;
     }
-    
+
     private function checkPrerequisites(SymfonyStyle $io): bool
     {
         $io->section('Checking prerequisites');
-        
+
         // Check if certbot is available
         $process = new Process(['which', 'certbot']);
         $process->run();
-        
+
         if (!$process->isSuccessful()) {
             $io->error('certbot is not installed.');
             $io->note([
@@ -105,23 +119,23 @@ class SslSetupCommand extends ConsoleCommand
             ]);
             return false;
         }
-        
+
         // Check if running as root (required for certbot)
         if (posix_getuid() !== 0) {
             $io->warning('This command should be run as root (sudo) for certbot to work properly.');
-            if (!$io->confirm('Continue anyway?', false)) {
+            if (!$io->confirm('Continue anyway?', true)) {
                 return false;
             }
         }
-        
+
         $io->success('Prerequisites check passed');
         return true;
     }
-    
+
     private function obtainCertificateWebroot(string $domain, string $email, string $webroot, SymfonyStyle $io): bool
     {
         $io->section('Obtaining Let\'s Encrypt Certificate (Webroot Mode)');
-        
+
         $process = new Process([
             'certbot', 'certonly',
             '--webroot',
@@ -131,14 +145,14 @@ class SslSetupCommand extends ConsoleCommand
             '--agree-tos',
             '--non-interactive'
         ]);
-        
+
         $process->setTimeout(300); // 5 minutes timeout
         $io->note("Running: {$process->getCommandLine()}");
-        
+
         $process->run(function ($type, $buffer) use ($io) {
             $io->write($buffer);
         });
-        
+
         if ($process->isSuccessful()) {
             $io->success('Certificate obtained successfully!');
             return true;
@@ -150,16 +164,16 @@ class SslSetupCommand extends ConsoleCommand
             return false;
         }
     }
-    
+
     private function obtainCertificateStandalone(string $domain, string $email, SymfonyStyle $io): bool
     {
         $io->section('Obtaining Let\'s Encrypt Certificate (Standalone Mode)');
         $io->warning('This method requires stopping your web server temporarily.');
-        
+
         if (!$io->confirm('Continue?', false)) {
             return false;
         }
-        
+
         $process = new Process([
             'certbot', 'certonly',
             '--standalone',
@@ -168,25 +182,30 @@ class SslSetupCommand extends ConsoleCommand
             '--agree-tos',
             '--non-interactive'
         ]);
-        
+
         $process->setTimeout(300); // 5 minutes timeout
         $io->note("Running: {$process->getCommandLine()}");
-        
+
         $process->run(function ($type, $buffer) use ($io) {
             $io->write($buffer);
         });
-        
+
         return $process->isSuccessful();
     }
-    
+
     private function configureCertificates(string $domain, string $sslDir, SymfonyStyle $io): bool
     {
         $io->section('Configuring Certificates');
-        
-        $letsencryptDir = "/etc/letsencrypt/live/{$domain}";
+
+        if (PHP_OS_FAMILY === 'Darwin') {
+            $certbot_dir = '/opt/homebrew/etc/certbot/certs/live';// macOS detected
+        } else {
+            $certbot_dir = '/etc/letsencrypt/live';
+        }
+        $letsencryptDir = "{$certbot_dir}/{$domain}";
         $certFile = "{$sslDir}/workerman.crt";
         $keyFile = "{$sslDir}/workerman.key";
-        
+
         // Copy certificates
         if (file_exists("{$letsencryptDir}/fullchain.pem")) {
             copy("{$letsencryptDir}/fullchain.pem", $certFile);
@@ -195,7 +214,7 @@ class SslSetupCommand extends ConsoleCommand
             $io->error("Certificate file not found at {$letsencryptDir}/fullchain.pem");
             return false;
         }
-        
+
         if (file_exists("{$letsencryptDir}/privkey.pem")) {
             copy("{$letsencryptDir}/privkey.pem", $keyFile);
             $io->text("Copied private key to: {$keyFile}");
@@ -203,11 +222,11 @@ class SslSetupCommand extends ConsoleCommand
             $io->error("Private key file not found at {$letsencryptDir}/privkey.pem");
             return false;
         }
-        
+
         // Set proper permissions
         chmod($certFile, 0644);
         chmod($keyFile, 0600);
-        
+
         // Change ownership to web server user if possible
         $webUser = $this->detectWebUser();
         if ($webUser && posix_getuid() === 0) {
@@ -219,23 +238,23 @@ class SslSetupCommand extends ConsoleCommand
             chgrp($keyFile, $gid);
             $io->text("Changed ownership to: {$webUser}");
         }
-        
+
         $io->success('Certificate files configured successfully');
         return true;
     }
-    
+
     private function updateGravConfig(SymfonyStyle $io): void
     {
         $io->section('Updating Grav Configuration');
-        
+
         $configFile = GRAV_ROOT . '/user/config/plugins/workerman-server.yaml';
-        
+
         if (file_exists($configFile)) {
-            $config = yaml_parse_file($configFile);
+            $config = Yaml::parse($configFile);
         } else {
             $config = [];
         }
-        
+
         // Update SSL configuration
         $config['ssl'] = [
             'enabled' => true,
@@ -243,9 +262,9 @@ class SslSetupCommand extends ConsoleCommand
             'key_file' => 'ssl/workerman.key',
             'verify_peer' => true
         ];
-        
+
         // Save configuration
-        $yamlContent = yaml_emit($config, YAML_UTF8_ENCODING);
+        $yamlContent = Yaml::dump($config, YAML_UTF8_ENCODING);
         file_put_contents($configFile, $yamlContent);
         
         $io->success("Updated plugin configuration: {$configFile}");
