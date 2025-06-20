@@ -1,6 +1,8 @@
 enabled: true
 host: 127.0.0.1
 port: 8080
+public_host: ''
+public_port: ''
 worker_count: 4
 max_connections_per_ip: 10
 heartbeat_interval: 30

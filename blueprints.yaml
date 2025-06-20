@@ -59,6 +59,24 @@ form:
               validate:
                 type: int
             
+            public_host:
+              type: text
+              label: PLUGIN_WORKERMAN_SERVER.PUBLIC_HOST
+              help: PLUGIN_WORKERMAN_SERVER.PUBLIC_HOST_HELP
+              placeholder: 'example.com (leave empty to use bind host)'
+              validate:
+                type: string
+            
+            public_port:
+              type: number
+              label: PLUGIN_WORKERMAN_SERVER.PUBLIC_PORT
+              help: PLUGIN_WORKERMAN_SERVER.PUBLIC_PORT_HELP
+              placeholder: 'Leave empty to use bind port'
+              min: 1024
+              max: 65535
+              validate:
+                type: int
+            
             worker_count:
               type: number
               label: PLUGIN_WORKERMAN_SERVER.WORKER_COUNT

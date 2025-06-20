@@ -8,6 +8,10 @@ en:
     HOST_HELP: Host address for the Workerman server. Use 127.0.0.1 for local only, 0.0.0.0 for all interfaces.
     PORT: Server Port
     PORT_HELP: Port for the Workerman server. Make sure it's not in use by another service.
+    PUBLIC_HOST: Public Host
+    PUBLIC_HOST_HELP: Public domain/hostname for client connections (e.g., behind NAT/firewall). Leave empty to use server host.
+    PUBLIC_PORT: Public Port
+    PUBLIC_PORT_HELP: Public port for client connections. Leave empty to use server port.
     WORKER_COUNT: Worker Processes
     WORKER_COUNT_HELP: Number of worker processes to run. Typically 2-4x CPU cores for best performance.
     MAX_CONNECTIONS_PER_IP: Max Connections per IP

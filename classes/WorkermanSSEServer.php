@@ -50,9 +50,8 @@ class WorkermanSSEServer
      */
     public function initialize(): void
     {
-        // Determine protocol based on SSL configuration
-        $protocol = $this->config['ssl']['enabled'] ? 'https' : 'http';
-        $address = "{$protocol}://{$this->config['host']}:{$this->config['port']}";
+        // Always use http protocol - SSL is handled via transport layer
+        $address = "http://{$this->config['host']}:{$this->config['port']}";
         
         $this->worker = new Worker($address);
         
@@ -110,8 +109,7 @@ class WorkermanSSEServer
             'ssl' => [
                 'local_cert' => $certFile,
                 'local_pk' => $keyFile,
-                'verify_peer' => $sslConfig['verify_peer'],
-                'allow_self_signed' => true,
+                'verify_peer' => false,
                 'verify_peer_name' => false
             ]
         ];
